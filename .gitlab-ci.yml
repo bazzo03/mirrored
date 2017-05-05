@@ -1,0 +1,37 @@
+image: alpine
+
+stages:
+  - build
+  - test
+
+# @TODO: Remove APP PASSWORD from bb when finished
+before_script:
+  - export APP_PASSWORD=eAHnmSzwPhdEkwdb77aG
+  - export REPOSITORY_OWNER=joseadbsf
+  - export REPOSITORY_SLUG=testing
+  - apk update && apk add ca-certificates && update-ca-certificates && apk add openssl
+  - mkdir bsfci
+  - cd bsfci
+  - wget https://bsfci.gitlab.io/cicd/builds/bitbucket # Get bitbucket tool
+  - chmod +x ./bitbucket # Grant execution rights
+
+cache:
+  untracked: true
+  paths:
+    - ./bsfci
+
+first_stage:
+  stage: build
+  script:
+    - ./bitbucket 1 INPROGRESS BSFCI_TEST http://localhost "BSF-CI Build InProgress ..." 
+    - sleep 10s # Do your build...
+    - ./bitbucket 1 INPROGRESS BSFCI_TEST http://localhost "BSF-CI Build Successfull ..."
+    # Execute bitbucket tool from your building process in order to send a "build fail" statement if applies.
+
+final_stage:
+  stage: test
+  script:
+    - ls -la
+    - ./bitbucket 1 INPROGRESS BSFCI_TEST http://localhost "BSF-CI Test InProgress ..."
+    - sleep 10s # Run your tests...
+    - ./bitbucket 1 SUCCESSFUL BSFCI_TEST http://localhost "BSF-CI Finished Successfuly."
